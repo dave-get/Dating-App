@@ -1,0 +1,130 @@
+// This is your Prisma schema file.
+// Learn more at: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// -------------------- ENUMS --------------------
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum LookingFor {
+  FRIENDSHIP
+  DATING
+  LONG_TERM
+  CASUAL
+}
+
+// -------------------- USER MODELS --------------------
+
+model User {
+  id              Int        @id @default(autoincrement())
+  firstname       String
+  lastname        String
+  email           String     @unique
+  phoneNumber     String?    @unique
+  verified        Boolean    @default(false)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  profile         Profile?
+  accounts        Account[]
+  likesSent       Like[]     @relation("LikeFrom")
+  likesReceived   Like[]     @relation("LikeTo")
+  matchesAsUser1  Match[]    @relation("MatchUser1")
+  matchesAsUser2  Match[]    @relation("MatchUser2")
+}
+
+// -------------------- RELATIONSHIP MODELS --------------------
+// This model represents the relationship between users and their accounts
+model Account {
+  id                 Int      @id @default(autoincrement())
+  user               User     @relation(fields: [userId], references: [id])
+  userId             Int
+  provider           String   // 'google', 'phone'
+  providerAccountId  String   // Google ID or phone number
+  type               String   // 'oauth', 'sms'
+  createdAt          DateTime @default(now())
+
+  @@unique([provider, providerAccountId])
+}
+
+// This model is used for phone number verification
+model PhoneVerification {
+  id          Int      @id @default(autoincrement())
+  phoneNumber String   @unique
+  code        String
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+}
+
+// This model represents a user profile
+model Profile {
+  id             Int               @id @default(autoincrement())
+  bio            String
+  age            Int
+  gender         Gender
+  location       String
+  lookingFor     LookingFor
+  profilePicture String
+
+  user           User              @relation(fields: [userId], references: [id])
+  userId         Int              @unique
+
+  interests      ProfileInterest[]
+  media          Media[]
+
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}
+
+// This model represents a user's interests in their profile
+model ProfileInterest {
+  id         Int      @id @default(autoincrement())
+  interest   String
+  profile    Profile  @relation(fields: [profileId], references: [id])
+  profileId  Int
+}
+
+// This model represents media (images/videos) associated with a user's profile
+model Media {
+  id         Int      @id @default(autoincrement())
+  url        String
+  type       String   // 'image', 'video'
+  profile    Profile  @relation(fields: [profileId], references: [id])
+  profileId  Int
+  createdAt  DateTime @default(now())
+}
+
+// -------------------- LIKE AND MATCH MODELS --------------------
+model Like {
+  id         Int      @id @default(autoincrement())
+  fromUser   User     @relation("LikeFrom", fields: [fromUserId], references: [id])
+  fromUserId Int
+  toUser     User     @relation("LikeTo", fields: [toUserId], references: [id])
+  toUserId   Int
+  createdAt  DateTime @default(now())
+
+  @@unique([fromUserId, toUserId])
+}
+
+model Match {
+  id        Int      @id @default(autoincrement())
+  user1     User     @relation("MatchUser1", fields: [user1Id], references: [id])
+  user1Id   Int
+  user2     User     @relation("MatchUser2", fields: [user2Id], references: [id])
+  user2Id   Int
+  matchedAt DateTime @default(now())
+
+  @@unique([user1Id, user2Id])
+}
