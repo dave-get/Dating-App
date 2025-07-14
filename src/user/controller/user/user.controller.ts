@@ -1,8 +1,8 @@
 import { Body, Controller, Get, Post, Param, Put } from '@nestjs/common';
-import { PhoneRegistrationDto } from 'src/user/dtos/phoneRegistration.dto';
-import { GoogleRegistrationDto } from 'src/user/dtos/googleRegistration.dto';
-import { CompleteProfileDto } from 'src/user/dtos/completeProfile.dto';
-import { UserService } from 'src/user/service/user/user.service';
+import { PhoneRegistrationDto } from '../../dtos/phoneRegistration.dto';
+import { GoogleRegistrationDto } from '../../dtos/googleRegistration.dto';
+import { CompleteProfileDto } from '../../dtos/completeProfile.dto';
+import { UserService } from '../../service/user/user.service';
 
 @Controller('user')
 export class UserController {

@@ -1,8 +1,8 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/services/prisma/prisma.service';
-import { PhoneRegistrationDto } from 'src/user/dtos/phoneRegistration.dto';
-import { GoogleRegistrationDto } from 'src/user/dtos/googleRegistration.dto';
-import { CompleteProfileDto } from 'src/user/dtos/completeProfile.dto';
+import { PhoneRegistrationDto } from '../../dtos/phoneRegistration.dto';
+import { GoogleRegistrationDto } from '../../dtos/googleRegistration.dto';
+import { CompleteProfileDto } from '../../dtos/completeProfile.dto';
 
 @Injectable()
 export class UserService {

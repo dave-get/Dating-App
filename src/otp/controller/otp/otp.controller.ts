@@ -7,7 +7,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { OtpService } from 'src/otp/service/otp/otp.service';
-import { PhoneRegistrationDto } from 'src/user/dtos/phoneRegistration.dto';
+import { PhoneRegistrationDto } from '../../../user/dtos/phoneRegistration.dto';
 import { UserService } from 'src/user/service/user/user.service';
 
 @Controller('otp')
