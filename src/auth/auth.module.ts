@@ -18,6 +18,6 @@ import googleOauthConfig from 'src/config/google.oauth.config';
   ],
   exports: [AuthService, GoogleStraregy],
   controllers: [AuthController],
-  providers: [AuthService, UserService, GoogleStraregy],
+  providers: [AuthService, GoogleStraregy],
 })
 export class AuthModule {}

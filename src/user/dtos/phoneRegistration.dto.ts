@@ -1,5 +1,5 @@
 import { IsNotEmpty, IsNumber, IsString, IsOptional, IsEnum, IsInt, Min, Max } from 'class-validator';
-import { Gender, LookingFor } from 'generated/prisma';
+import { Gender, LookingFor } from '@prisma/client';
 
 export class PhoneRegistrationDto {
   @IsNotEmpty()

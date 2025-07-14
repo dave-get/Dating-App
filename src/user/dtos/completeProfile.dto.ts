@@ -1,6 +1,5 @@
 import { IsOptional, IsString, IsEnum, IsInt, Min, Max } from 'class-validator';
-import { Gender, LookingFor } from 'generated/prisma';
-
+import { Gender, LookingFor } from '@prisma/client';
 export class CompleteProfileDto {
   @IsOptional()
   @IsString()
@@ -27,4 +26,4 @@ export class CompleteProfileDto {
   @IsOptional()
   @IsString()
   profilePicture?: string;
-} 
+}

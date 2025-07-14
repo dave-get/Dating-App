@@ -1,5 +1,4 @@
-import { Injectable } from '@nestjs/common';
-import { Prisma } from 'generated/prisma';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/services/prisma/prisma.service';
 import { PhoneRegistrationDto } from 'src/user/dtos/phoneRegistration.dto';
 import { GoogleRegistrationDto } from 'src/user/dtos/googleRegistration.dto';
@@ -7,7 +6,8 @@ import { CompleteProfileDto } from 'src/user/dtos/completeProfile.dto';
 
 @Injectable()
 export class UserService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
+  
   findUserByEmail(email: string) {
     return this.prisma.user.findUnique({
       where: { email },
@@ -32,7 +32,7 @@ export class UserService {
     });
   }
 
-  getAllUsers() {
+  async getAllUsers() {
     return this.prisma.user.findMany();
   }
 
@@ -42,7 +42,7 @@ export class UserService {
 
     const existingUser = await this.findUserByPhone(phoneNumber);
     if (existingUser) {
-      throw new Error('User with this phone number already exists');
+      throw new HttpException('User with this phone number already exists', HttpStatus.BAD_REQUEST);
     }
 
     const newUser = await this.prisma.user.create({
@@ -87,12 +87,12 @@ export class UserService {
 
     const existingGoogleAccount = await this.findUserByGoogleId(googleId);
     if (existingGoogleAccount) {
-      throw new Error('User with this Google account already exists');
+      throw new HttpException('User with this Google account already exists', HttpStatus.BAD_REQUEST);
     }
 
     const existingUser = await this.findUserByEmail(email);
     if (existingUser) {
-      throw new Error('User with this email already exists');
+      throw new HttpException('User with this email already exists', HttpStatus.BAD_REQUEST);
     }
 
     const newUser = await this.prisma.user.create({
