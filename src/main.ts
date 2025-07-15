@@ -4,13 +4,14 @@ import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import * as session from 'express-session';
 import * as cookieParser from 'cookie-parser';
-// Add these imports for Redis session store
-import { RedisStore } from 'connect-redis';
-import { createClient } from 'redis';
+import Redis from 'ioredis';
+import { RedisStore } from 'connect-redis';(session)
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
+  // Configure Redis client
+  const redisClient = new Redis()
   // Enable CORS
   app.enableCors({
     origin: process.env.FRONTEND_URL || 'http://localhost:3000',
@@ -23,18 +24,13 @@ async function bootstrap() {
   // Configure cookie parser middleware
   app.use(cookieParser());
 
-  // Create Redis client
-  const redisClient = createClient({
-    url: process.env.REDIS_URL, // e.g. 'redis://default:password@host:port'
-  });
-  await redisClient.connect();
-
-  const store = new RedisStore({ client: redisClient });
-
   // Configure session middleware to use Redis
   app.use(
     session({
-      store: store,
+      store: new RedisStore({
+        client: redisClient,
+        ttl: 86400, // 24 hours
+      }),
       secret: process.env.SESSION_SECRET || 'your-secret-key',
       resave: false,
       saveUninitialized: false,
