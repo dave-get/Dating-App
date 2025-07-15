@@ -1,30 +1,25 @@
 import { Body, Controller, Get, Post, Param, Put } from '@nestjs/common';
-import { PhoneRegistrationDto } from '../../dtos/phoneRegistration.dto';
-import { GoogleRegistrationDto } from '../../dtos/googleRegistration.dto';
 import { CompleteProfileDto } from '../../dtos/completeProfile.dto';
 import { UserService } from '../../service/user/user.service';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
-
+  
   @Get()
   getAllUsers() {
     return this.userService.getAllUsers();
   }
+
+  @Get('account')
+  getUserAccount() {
+    return this.userService.getUserAccount();
+  }
+
+
   @Get('/:email')
   findUserByEmail(email: string) {
     return this.userService.findUserByEmail(email);
-  }
-
-  @Post('signup/phone')
-  async signupWithPhone(@Body() phoneData: PhoneRegistrationDto) {
-    return this.userService.registerUserWithPhone(phoneData);
-  }
-
-  @Post('signup/google')
-  async signupWithGoogle(@Body() googleData: GoogleRegistrationDto) {
-    return this.userService.registerUserWithGoogle(googleData);
   }
 
   @Put('profile/:userId')

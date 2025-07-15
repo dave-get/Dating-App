@@ -7,8 +7,11 @@ import { CompleteProfileDto } from '../../dtos/completeProfile.dto';
 @Injectable()
 export class UserService {
   constructor(private readonly prisma: PrismaService) {}
-  
+
   findUserByEmail(email: string) {
+    if (!email) {
+      throw new HttpException('Email is required', HttpStatus.BAD_REQUEST);
+    }
     return this.prisma.user.findUnique({
       where: { email },
     });
@@ -42,7 +45,10 @@ export class UserService {
 
     const existingUser = await this.findUserByPhone(phoneNumber);
     if (existingUser) {
-      throw new HttpException('User with this phone number already exists', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        'User with this phone number already exists',
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     const newUser = await this.prisma.user.create({
@@ -87,12 +93,18 @@ export class UserService {
 
     const existingGoogleAccount = await this.findUserByGoogleId(googleId);
     if (existingGoogleAccount) {
-      throw new HttpException('User with this Google account already exists', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        'User with this Google account already exists',
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     const existingUser = await this.findUserByEmail(email);
     if (existingUser) {
-      throw new HttpException('User with this email already exists', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        'User with this email already exists',
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     const newUser = await this.prisma.user.create({
@@ -150,5 +162,9 @@ export class UserService {
       });
       return newProfile;
     }
+  }
+
+  async getUserAccount() {
+    return this.prisma.account.findMany();
   }
 }
