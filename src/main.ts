@@ -4,15 +4,10 @@ import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import * as session from 'express-session';
 import * as cookieParser from 'cookie-parser';
-import Redis from 'ioredis';
-import { RedisStore } from 'connect-redis';(session)
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  // Configure Redis client
-  const redisClient = new Redis()
-  // Enable CORS
   app.enableCors({
     origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     credentials: true,
@@ -27,10 +22,6 @@ async function bootstrap() {
   // Configure session middleware to use Redis
   app.use(
     session({
-      store: new RedisStore({
-        client: redisClient,
-        ttl: 86400, // 24 hours
-      }),
       secret: process.env.SESSION_SECRET || 'your-secret-key',
       resave: false,
       saveUninitialized: false,
