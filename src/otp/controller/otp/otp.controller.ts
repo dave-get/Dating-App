@@ -43,11 +43,11 @@ export class OtpController {
     @Body('phoneNumber') phoneNumber: string,
     @Session() session: any
   ) {
-    const verification = session.phoneVerification;
+    const verification = session?.phoneVerification;
     if (
       verification &&
-      verification.otp === otp &&
-      verification.phoneNumber === phoneNumber
+      verification?.otp === otp &&
+      verification?.phoneNumber === phoneNumber
     ) {
       session.phoneVerification = { ...verification, otp: null, verified: true };
       console.log(
@@ -65,6 +65,7 @@ export class OtpController {
           'OTP verified successfully. You can now proceed with registration.',
       };
     }
+    console.log(verification)
     return { verified: false, message: 'Incorrect OTP or phone number mismatch' };
   }
 
