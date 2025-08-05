@@ -32,33 +32,40 @@ export class OtpController {
     }
 
     const otp = this.otpService.generateOtp();
-    session.otp = otp; // store for later verification
-    session.phoneNumber = phoneNumber; // store phone number for registration
+    session.phoneVerification = { otp, phoneNumber }; // store both together
     await this.otpService.sendOtp(phoneNumber.toString(), otp);
     return { message: 'OTP sent successfully' };
   }
 
   @Post('verify')
-  async verifyOtp(@Body('otp') otp: string, @Session() session: any) {
-    if (session.otp === otp) {
-      // Clear OTP from session after successful verification
-      session.otp = null;
-      // Set flag to indicate phone is verified
-      session.phoneVerified = true;
-      console.log({
+  async verifyOtp(
+    @Body('otp') otp: string,
+    @Body('phoneNumber') phoneNumber: string,
+    @Session() session: any
+  ) {
+    const verification = session.phoneVerification;
+    if (
+      verification &&
+      verification.otp === otp &&
+      verification.phoneNumber === phoneNumber
+    ) {
+      session.phoneVerification = { ...verification, otp: null, verified: true };
+      console.log(
+        {
         verified: true,
-        phoneNumber: session.phoneNumber,
+        phoneNumber: verification.phoneNumber,
         message:
           'OTP verified successfully. You can now proceed with registration.',
-      });
+        }
+      );
       return {
         verified: true,
-        phoneNumber: session.phoneNumber,
+        phoneNumber: verification.phoneNumber,
         message:
           'OTP verified successfully. You can now proceed with registration.',
       };
     }
-    return { verified: false, message: 'Incorrect OTP' };
+    return { verified: false, message: 'Incorrect OTP or phone number mismatch' };
   }
 
   @Post('register')
@@ -67,10 +74,11 @@ export class OtpController {
     @Session() session: Record<string, any>,
   ) {
     // Check if OTP was verified for this phone number
-    console.log('Session data:', session.phoneVerified, session.phoneNumber);
+    const verification = session.phoneVerification;
+    console.log('Session data:', verification?.verified, verification?.phoneNumber);
     if (
-      !session?.phoneVerified ||
-      session.phoneNumber !== registrationData.phoneNumber
+      !verification?.verified ||
+      verification.phoneNumber !== registrationData.phoneNumber
     ) {
       throw new HttpException(
         'Phone number not verified. Please verify OTP first.',
@@ -83,8 +91,7 @@ export class OtpController {
       await this.userService.registerUserWithPhone(registrationData);
 
     // Clear session data after successful registration
-    session.phoneVerified = null;
-    session.phoneNumber = null;
+    session.phoneVerification = null;
 
     return {
       success: true,
