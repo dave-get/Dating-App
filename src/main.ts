@@ -9,7 +9,7 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: true,
     credentials: true,
   });
 
@@ -26,7 +26,8 @@ async function bootstrap() {
       resave: false,
       saveUninitialized: false,
       cookie: {
-        secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+        httpOnly: true,
+        secure: false, // Use secure cookies in production
         maxAge: 1000 * 60 * 60 * 24, // 24 hours
       },
     }),
