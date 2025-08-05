@@ -45,6 +45,12 @@ export class OtpController {
       session.otp = null;
       // Set flag to indicate phone is verified
       session.phoneVerified = true;
+      console.log({
+        verified: true,
+        phoneNumber: session.phoneNumber,
+        message:
+          'OTP verified successfully. You can now proceed with registration.',
+      });
       return {
         verified: true,
         phoneNumber: session.phoneNumber,
