@@ -44,6 +44,7 @@ export class OtpController {
     @Session() session: any
   ) {
     const verification = session?.phoneVerification;
+    console.log("verification: ", verification)
     if (
       verification &&
       verification?.otp === otp &&
