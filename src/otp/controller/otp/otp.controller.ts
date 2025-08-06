@@ -51,14 +51,6 @@ export class OtpController {
       verification?.phoneNumber === phoneNumber
     ) {
       session.phoneVerification = { ...verification, otp: null, verified: true };
-      console.log(
-        {
-        verified: true,
-        phoneNumber: verification.phoneNumber,
-        message:
-          'OTP verified successfully. You can now proceed with registration.',
-        }
-      );
       return {
         verified: true,
         phoneNumber: verification.phoneNumber,
@@ -77,7 +69,6 @@ export class OtpController {
   ) {
     // Check if OTP was verified for this phone number
     const verification = session.phoneVerification;
-    console.log('Session data:', verification?.verified, verification?.phoneNumber);
     if (
       !verification?.verified ||
       verification.phoneNumber !== registrationData.phoneNumber
