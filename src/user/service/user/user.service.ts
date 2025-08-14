@@ -46,6 +46,7 @@ export class UserService {
       media,
     } = registrationDto;
 
+    
     // Check for existing user by email or phone
     const existingUser = await this.prisma.user.findFirst({
       where: {
@@ -55,6 +56,7 @@ export class UserService {
     if (existingUser) {
       throw new HttpException('User already exists', HttpStatus.CONFLICT);
     }
+
 
     // Create user
     const user = await this.prisma.user.create({
