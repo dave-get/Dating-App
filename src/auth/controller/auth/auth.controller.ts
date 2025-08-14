@@ -1,17 +1,16 @@
-import { Controller, UseGuards, Get } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { AuthService } from '../../service/auth/auth.service';
-import { GoogleAuthGuard } from 'src/auth/guards/google-auth/google-auth.guard';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Get('google/login')
-  @UseGuards(GoogleAuthGuard)
-  googleLogin() {}
+  googleLogin(@Body() body: { idToken: string }) {
+    const { idToken } = body;
+    return this.authService.verifyGoogleIdToken(idToken);
+  }
 
-
-  @UseGuards(GoogleAuthGuard)
   @Get('google/callback')
   googleCallback() {}
 }

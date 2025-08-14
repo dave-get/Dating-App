@@ -62,4 +62,36 @@ export class OtpService {
       .toString()
       .slice(0, length);
   }
+
+  async verifyOtp(phoneNumber: string, otp: string, session: any) {
+    const verification = session?.phoneVerification;
+    console.log(
+      'verification: ',
+      verification,
+      verification?.phoneNumber,
+      verification?.otp,
+    );
+    if (
+      verification &&
+      verification?.otp === otp &&
+      verification?.phoneNumber === phoneNumber
+    ) {
+      session.phoneVerification = {
+        ...verification,
+        otp: null,
+        verified: true,
+      };
+      return {
+        verified: true,
+        phoneNumber: verification.phoneNumber,
+        message:
+          'OTP verified successfully. You can now proceed with registration.',
+      };
+    }
+    console.log(verification);
+    return {
+      verified: false,
+      message: 'Incorrect OTP or phone number mismatch',
+    };
+  }
 }

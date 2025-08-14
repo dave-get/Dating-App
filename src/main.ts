@@ -19,7 +19,7 @@ async function bootstrap() {
   // Configure cookie parser middleware
   app.use(cookieParser());
 
-  // Configure session middleware to use Redis
+  // Configure session middleware
   app.use(
     session({
       secret: process.env.SESSION_SECRET || 'your-secret-key',
@@ -27,8 +27,8 @@ async function bootstrap() {
       saveUninitialized: false,
       cookie: {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production", // Use secure cookies in production
-        sameSite: 'none',
+        secure: false,
+        sameSite: 'lax',
         maxAge: 1000 * 60 * 60 * 24, // 24 hours
       },
     }),

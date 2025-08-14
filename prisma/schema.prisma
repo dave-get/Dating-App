@@ -28,16 +28,19 @@ enum LookingFor {
 
 model User {
   id              Int        @id @default(autoincrement())
-  firstname       String
-  lastname        String
+  username       String
+  age            Int
+  gender         Gender
+  distancePreference Int
+  phoneNumber     String     @unique
   email           String     @unique
-  phoneNumber     String?    @unique
+  media          Media[]
+
+  profile         Profile?
   verified        Boolean    @default(false)
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
 
-  profile         Profile?
-  accounts        Account[]
   likesSent       Like[]     @relation("LikeFrom")
   likesReceived   Like[]     @relation("LikeTo")
   matchesAsUser1  Match[]    @relation("MatchUser1")
@@ -45,63 +48,80 @@ model User {
 }
 
 // -------------------- RELATIONSHIP MODELS --------------------
-// This model represents the relationship between users and their accounts
-model Account {
-  id                 Int      @id @default(autoincrement())
-  user               User     @relation(fields: [userId], references: [id])
-  userId             Int
-  provider           String   // 'google', 'phone'
-  providerAccountId  String   // Google ID or phone number
-  type               String   // 'oauth', 'sms'
-  createdAt          DateTime @default(now())
-
-  @@unique([provider, providerAccountId])
-}
-
-// This model is used for phone number verification
-model PhoneVerification {
-  id          Int      @id @default(autoincrement())
-  phoneNumber String   @unique
-  code        String
-  expiresAt   DateTime
-  createdAt   DateTime @default(now())
-}
 
 // This model represents a user profile
 model Profile {
   id             Int               @id @default(autoincrement())
-  bio            String
-  age            Int
-  gender         Gender
   location       String
   lookingFor     LookingFor
-  profilePicture String
 
   user           User              @relation(fields: [userId], references: [id])
   userId         Int              @unique
 
-  interests      ProfileInterest[]
-  media          Media[]
+  Passion WhatIsYourPassion?
+  lifeStyle      LifeStyle?
+  whatMakesYouUnique WhatMakesYouUnique?
 
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
 }
 
 // This model represents a user's interests in their profile
-model ProfileInterest {
+model WhatIsYourPassion {
   id         Int      @id @default(autoincrement())
-  interest   String
+  creativity Creativity[]
+  funAndFavorites FunAndFavorites[]
+  food Food[]
   profile    Profile  @relation(fields: [profileId], references: [id])
-  profileId  Int
+  profileId  Int @unique
+}
+
+model Creativity {
+  id Int @id @default(autoincrement())
+  passion WhatIsYourPassion @relation(fields: [passionId], references: [id])
+  passionId Int
+}
+
+model FunAndFavorites {
+  id Int @id @default(autoincrement())
+  passion WhatIsYourPassion @relation(fields: [passionId], references: [id])
+  passionId Int
+}
+
+model Food {
+  id Int @id @default(autoincrement())
+  passion WhatIsYourPassion @relation(fields: [passionId], references: [id])
+  passionId Int
+}
+// This model represents a user's Lifestyle choices in their profile
+model LifeStyle {
+  id         Int      @id @default(autoincrement())
+  profile    Profile  @relation(fields: [profileId], references: [id])
+  profileId  Int      @unique
+  smoking    String?
+  drinking   String?
+  workout    String?
+  pets       String?
+  createdAt  DateTime @default(now())
+}
+
+// This model represents a user's What Makes You Unique section in their profile
+model WhatMakesYouUnique {
+  id         Int      @id @default(autoincrement())
+  profile    Profile  @relation(fields: [profileId], references: [id])
+  profileId  Int      @unique
+  education  String?
+  howDoYouShowLove String?
+  comunicationWay    String?
+  createdAt  DateTime @default(now())
 }
 
 // This model represents media (images/videos) associated with a user's profile
 model Media {
   id         Int      @id @default(autoincrement())
   url        String
-  type       String   // 'image', 'video'
-  profile    Profile  @relation(fields: [profileId], references: [id])
-  profileId  Int
+  user    User  @relation(fields: [userId], references: [id])
+  userId    Int
   createdAt  DateTime @default(now())
 }
 

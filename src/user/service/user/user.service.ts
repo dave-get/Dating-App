@@ -1,8 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/services/prisma/prisma.service';
-import { PhoneRegistrationDto } from '../../dtos/phoneRegistration.dto';
-import { GoogleRegistrationDto } from '../../dtos/googleRegistration.dto';
-import { CompleteProfileDto } from '../../dtos/completeProfile.dto';
+import { RegistrationDto } from 'src/user/dtos/registration.dto';
 
 @Injectable()
 export class UserService {
@@ -14,157 +12,83 @@ export class UserService {
     }
     return this.prisma.user.findUnique({
       where: { email },
+      include: {
+        media: true,
+      },
     });
   }
 
   findUserByPhone(phoneNumber: string) {
     return this.prisma.user.findUnique({
       where: { phoneNumber },
-    });
-  }
-
-  findUserByGoogleId(googleId: string) {
-    return this.prisma.account.findUnique({
-      where: {
-        provider_providerAccountId: {
-          provider: 'google',
-          providerAccountId: googleId,
-        },
+      include: {
+        media: true,
       },
-      include: { user: true },
     });
   }
 
   async getAllUsers() {
-    return this.prisma.user.findMany();
-  }
-
-  // Register user with phone number
-  async registerUserWithPhone(phoneData: PhoneRegistrationDto) {
-    const { phoneNumber, firstname, lastname, ...profileData } = phoneData;
-
-    const existingUser = await this.findUserByPhone(phoneNumber);
-    if (existingUser) {
-      throw new HttpException(
-        'User with this phone number already exists',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    const newUser = await this.prisma.user.create({
-      data: {
-        phoneNumber,
-        firstname,
-        lastname,
-        email: `temp_${phoneNumber}@temp.com`, // Temporary email
-        verified: true, // Phone is verified through OTP
+    return this.prisma.user.findMany({
+      include: {
+        media: true,
       },
     });
-
-    // Create account record for phone
-    await this.prisma.account.create({
-      data: {
-        userId: newUser.id,
-        provider: 'phone',
-        providerAccountId: phoneNumber.toString(),
-        type: 'sms',
-      },
-    });
-
-    return {
-      id: newUser.id,
-      phoneNumber: newUser.phoneNumber,
-      firstname: newUser.firstname,
-      lastname: newUser.lastname,
-      verified: newUser.verified,
-    };
   }
 
-  // Register user with Google account
-  async registerUserWithGoogle(googleData: GoogleRegistrationDto) {
+  async userRegistration(registrationDto: RegistrationDto) {
     const {
-      googleId,
+      username,
+      phoneNumber,
       email,
-      firstname,
-      lastname,
-      profilePicture,
-      ...profileData
-    } = googleData;
+      age,
+      gender,
+      distancePreference,
+      media,
+    } = registrationDto;
 
-    const existingGoogleAccount = await this.findUserByGoogleId(googleId);
-    if (existingGoogleAccount) {
-      throw new HttpException(
-        'User with this Google account already exists',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    const existingUser = await this.findUserByEmail(email);
+    // Check for existing user by email or phone
+    const existingUser = await this.prisma.user.findFirst({
+      where: {
+        OR: [{ email }, { phoneNumber }],
+      },
+    });
     if (existingUser) {
-      throw new HttpException(
-        'User with this email already exists',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new HttpException('User already exists', HttpStatus.CONFLICT);
     }
 
-    const newUser = await this.prisma.user.create({
+    // Create user
+    const user = await this.prisma.user.create({
       data: {
+        username,
+        phoneNumber,
         email,
-        firstname,
-        lastname,
-        phoneNumber: null,
-        verified: true, // Google accounts are pre-verified
+        age,
+        gender,
+        distancePreference,
+        ...(media &&
+          media.length > 0 && {
+            media: {
+              create: media.map((m) => ({
+                url: m.url,
+              })),
+            },
+          }),
+      },
+      include: {
+        media: true,
       },
     });
 
-    await this.prisma.account.create({
-      data: {
-        userId: newUser.id,
-        provider: 'google',
-        providerAccountId: googleId,
-        type: 'oauth',
-      },
-    });
-
-    return {
-      id: newUser.id,
-      email: newUser.email,
-      firstname: newUser.firstname,
-      lastname: newUser.lastname,
-      verified: newUser.verified,
-    };
+    return user;
   }
 
-  // Complete user profile
-  async completeProfile(userId: number, profileData: CompleteProfileDto) {
-    const existingProfile = await this.prisma.profile.findUnique({
-      where: { userId },
-    });
-
-    if (existingProfile) {
-      const updatedProfile = await this.prisma.profile.update({
-        where: { userId },
-        data: profileData,
-      });
-      return updatedProfile;
-    } else {
-      // Create new profile with required fields
-      const newProfile = await this.prisma.profile.create({
-        data: {
-          userId,
-          bio: profileData.bio || '',
-          age: profileData.age || 18,
-          gender: profileData?.gender || 'MALE',
-          location: profileData.location || '',
-          lookingFor: profileData.lookingFor || 'DATING',
-          profilePicture: profileData.profilePicture || '',
-        },
-      });
-      return newProfile;
+  async removeUser(phoneNumber: string) {
+    if (!await this.findUserByPhone(phoneNumber)) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
-  }
-
-  async getUserAccount() {
-    return this.prisma.account.findMany();
+    const deletedUser = await this.prisma.user.delete({
+      where: { phoneNumber },
+    });
+    return { message: 'User deleted successfully', user: deletedUser };
   }
 }
