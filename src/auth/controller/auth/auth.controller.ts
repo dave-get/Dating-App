@@ -5,12 +5,9 @@ import { AuthService } from '../../service/auth/auth.service';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Get('google/login')
+  @Get('google')
   googleLogin(@Body() body: { idToken: string }) {
     const { idToken } = body;
     return this.authService.verifyGoogleIdToken(idToken);
   }
-
-  @Get('google/callback')
-  googleCallback() {}
 }

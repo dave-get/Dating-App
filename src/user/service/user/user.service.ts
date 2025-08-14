@@ -45,7 +45,6 @@ export class UserService {
       distancePreference,
       media,
     } = registrationDto;
-
     
     // Check for existing user by email or phone
     const existingUser = await this.prisma.user.findFirst({
