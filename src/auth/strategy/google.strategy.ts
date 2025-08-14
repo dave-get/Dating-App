@@ -36,7 +36,10 @@ export class GoogleStraregy {
     if (!payload || !payload.sub || !payload.email) {
       throw new Error('Invalid Google ID token payload');
     }
-
+    console.log('verified email: ', {
+      email: payload.email,
+      emailVerified: payload.email_verified,
+    });
     return {
       googleId: payload.sub,
       email: payload.email,
