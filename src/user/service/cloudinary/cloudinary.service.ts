@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, InternalServerErrorException } from '@nestjs/common';
 import {
   v2 as cloudinary,
   UploadApiResponse,
@@ -13,8 +13,9 @@ export class CloudinaryService {
     const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
     if (!cloudName || !apiKey || !apiSecret) {
-      throw new InternalServerErrorException(
+      throw new HttpException(
         'Cloudinary configuration missing. Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
 
