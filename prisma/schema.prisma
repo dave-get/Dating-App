@@ -81,10 +81,10 @@ model WhatIsYourPassion {
 }
 
 model Creativity {
-  id                 Int @id @default(autoincrement())
-  value              String
-  passion            WhatIsYourPassion @relation(fields: [passionId], references: [id])
-  passionId          Int
+  id                Int @id @default(autoincrement())
+  value             String
+  passion           WhatIsYourPassion @relation(fields: [passionId], references: [id])
+  passionId         Int
 }
 
 model FunAndFavorites {
