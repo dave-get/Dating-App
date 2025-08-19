@@ -6,6 +6,7 @@ import {
   UserLocation,
 } from 'src/user/dtos/completeProfile.dto';
 import { RegistrationDto } from 'src/user/dtos/registration.dto';
+import type { Express } from 'express';
 
 @Injectable()
 export class UserService {
