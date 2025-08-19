@@ -99,13 +99,16 @@ export class UserService {
   }
 
   async createUserProfile(CompleteProfileDto: CompleteProfileDto) {
-    const { lookingFor, userId, passion, lifeStyle, whatMakesYouUnique } =
+    const { lookingFor, userId, location, passion, lifeStyle, whatMakesYouUnique } =
       CompleteProfileDto;
 
     // Create the profile
     const profile = await this.prisma.profile.create({
       data: {
         lookingFor,
+        include: {
+          location: true
+        },
         user: { connect: { id: userId } },
         ...(passion && {
           passion: {
