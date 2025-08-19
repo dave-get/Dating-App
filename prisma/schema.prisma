@@ -17,24 +17,17 @@ enum Gender {
   FEMALE
 }
 
-enum LookingFor {
-  FRIENDSHIP
-  DATING
-  LONG_TERM
-  CASUAL
-}
-
 // -------------------- USER MODELS --------------------
 
 model User {
   id              Int        @id @default(autoincrement())
-  username       String
-  age            Int
+  username        String
+  age             Int
   gender         Gender
   distancePreference Int
-  phoneNumber     String     @unique
+  phoneNumber     String?     @unique
   email           String     @unique
-  media          Media[]
+  media           Media[]
 
   profile         Profile?
   verified        Boolean    @default(false)
@@ -52,13 +45,13 @@ model User {
 // This model represents a user profile
 model Profile {
   id             Int               @id @default(autoincrement())
-  location       String
-  lookingFor     LookingFor
+  location       Location?
+  lookingFor     String?
 
   user           User              @relation(fields: [userId], references: [id])
   userId         Int              @unique
 
-  Passion WhatIsYourPassion?
+  passion        WhatIsYourPassion?
   lifeStyle      LifeStyle?
   whatMakesYouUnique WhatMakesYouUnique?
 
@@ -66,32 +59,46 @@ model Profile {
   updatedAt      DateTime         @updatedAt
 }
 
+model Location {
+  id         Int      @id @default(autoincrement())
+  profile    Profile  @relation(fields: [profileId], references: [id])
+  profileId  Int      @unique
+  latitude   Float
+  longitude  Float
+  city       String
+  country    String
+  createdAt  DateTime @default(now())
+}
+
 // This model represents a user's interests in their profile
 model WhatIsYourPassion {
-  id         Int      @id @default(autoincrement())
-  creativity Creativity[]
-  funAndFavorites FunAndFavorites[]
-  food Food[]
-  profile    Profile  @relation(fields: [profileId], references: [id])
-  profileId  Int @unique
+  id                 Int  @id @default(autoincrement())
+  creativity         Creativity[]
+  funAndFavorites    FunAndFavorites[]
+  food               Food[]
+  profile            Profile  @relation(fields: [profileId], references: [id])
+  profileId          Int      @unique
 }
 
 model Creativity {
-  id Int @id @default(autoincrement())
-  passion WhatIsYourPassion @relation(fields: [passionId], references: [id])
-  passionId Int
+  id                 Int @id @default(autoincrement())
+  value              String
+  passion            WhatIsYourPassion @relation(fields: [passionId], references: [id])
+  passionId          Int
 }
 
 model FunAndFavorites {
-  id Int @id @default(autoincrement())
-  passion WhatIsYourPassion @relation(fields: [passionId], references: [id])
-  passionId Int
+  id                 Int @id @default(autoincrement())
+  value              String
+  passion            WhatIsYourPassion @relation(fields: [passionId], references: [id])
+  passionId          Int
 }
 
 model Food {
-  id Int @id @default(autoincrement())
-  passion WhatIsYourPassion @relation(fields: [passionId], references: [id])
-  passionId Int
+  id                 Int @id @default(autoincrement())
+  value              String
+  passion            WhatIsYourPassion @relation(fields: [passionId], references: [id])
+  passionId          Int
 }
 // This model represents a user's Lifestyle choices in their profile
 model LifeStyle {
@@ -107,43 +114,43 @@ model LifeStyle {
 
 // This model represents a user's What Makes You Unique section in their profile
 model WhatMakesYouUnique {
-  id         Int      @id @default(autoincrement())
-  profile    Profile  @relation(fields: [profileId], references: [id])
-  profileId  Int      @unique
-  education  String?
-  howDoYouShowLove String?
-  comunicationWay    String?
-  createdAt  DateTime @default(now())
+  id                   Int      @id @default(autoincrement())
+  profile              Profile  @relation(fields: [profileId], references: [id])
+  profileId            Int      @unique
+  education            String?
+  howDoYouShowLove     String?
+  comunicationWay      String?
+  createdAt            DateTime @default(now())
 }
 
 // This model represents media (images/videos) associated with a user's profile
 model Media {
-  id         Int      @id @default(autoincrement())
-  url        String
-  user    User  @relation(fields: [userId], references: [id])
-  userId    Int
-  createdAt  DateTime @default(now())
+  id                   Int      @id @default(autoincrement())
+  url                  String
+  user                 User     @relation(fields: [userId], references: [id])
+  userId               Int
+  createdAt            DateTime @default(now())
 }
 
 // -------------------- LIKE AND MATCH MODELS --------------------
 model Like {
-  id         Int      @id @default(autoincrement())
-  fromUser   User     @relation("LikeFrom", fields: [fromUserId], references: [id])
-  fromUserId Int
-  toUser     User     @relation("LikeTo", fields: [toUserId], references: [id])
-  toUserId   Int
-  createdAt  DateTime @default(now())
+  id                   Int      @id @default(autoincrement())
+  fromUser             User     @relation("LikeFrom", fields: [fromUserId], references: [id])
+  fromUserId           Int
+  toUser               User     @relation("LikeTo", fields: [toUserId], references: [id])
+  toUserId             Int
+  createdAt            DateTime @default(now())
 
   @@unique([fromUserId, toUserId])
 }
 
 model Match {
-  id        Int      @id @default(autoincrement())
-  user1     User     @relation("MatchUser1", fields: [user1Id], references: [id])
-  user1Id   Int
-  user2     User     @relation("MatchUser2", fields: [user2Id], references: [id])
-  user2Id   Int
-  matchedAt DateTime @default(now())
+  id                   Int      @id @default(autoincrement())
+  user1                User     @relation("MatchUser1", fields: [user1Id], references: [id])
+  user1Id              Int
+  user2                User     @relation("MatchUser2", fields: [user2Id], references: [id])
+  user2Id              Int
+  matchedAt            DateTime @default(now())
 
   @@unique([user1Id, user2Id])
 }

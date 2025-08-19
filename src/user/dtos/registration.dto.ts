@@ -1,5 +1,5 @@
 import { IsNotEmpty, IsNumber, IsString, IsOptional, IsEnum, IsInt, Min, Max } from 'class-validator';
-import { Gender, LookingFor } from '@prisma/client';
+import { Gender } from '@prisma/client';
 import { CreateMediaDto } from './media.dto';
 
 export class RegistrationDto {
