@@ -1,5 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/services/prisma/prisma.service';
+import { CloudinaryService } from 'src/user/service/cloudinary/cloudinary.service';
 import {
   CompleteProfileDto,
   UserLocation,
@@ -8,7 +9,10 @@ import { RegistrationDto } from 'src/user/dtos/registration.dto';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cloudinary: CloudinaryService,
+  ) {}
 
   findUserByEmail(email: string) {
     if (!email) {
@@ -47,7 +51,10 @@ export class UserService {
     });
   }
 
-  async userRegistration(registrationDto: RegistrationDto) {
+  async userRegistration(
+    registrationDto: RegistrationDto,
+    files?: Express.Multer.File[],
+  ) {
     const {
       username,
       phoneNumber,
@@ -70,8 +77,33 @@ export class UserService {
 
     const parsedAge = Number(age);
     if (!Number.isInteger(parsedAge)) {
-      throw new HttpException('Age must be a valid number', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        'Age must be a valid number',
+        HttpStatus.BAD_REQUEST,
+      );
     }
+    const parsedDistance = Number(distancePreference);
+    if (!Number.isInteger(parsedDistance)) {
+      throw new HttpException(
+        'Distance preference must be a valid number',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    // If files are provided, upload to Cloudinary and merge into media
+    let combinedMedia = media ?? [];
+    if (files && files.length > 0) {
+      const uploads = files.map((f) =>
+        this.cloudinary.uploadBuffer(f.buffer, f.originalname, {
+          folder: process.env.CLOUDINARY_FOLDER,
+        }),
+      );
+      const results = await Promise.all(uploads);
+      combinedMedia = [
+        ...combinedMedia,
+        ...results.map((r) => ({ url: r.secure_url })),
+      ];
+    }
+
     // Create user
     const user = await this.prisma.user.create({
       data: {
@@ -80,11 +112,11 @@ export class UserService {
         email,
         age: parsedAge,
         gender,
-        distancePreference,
-        ...(media &&
-          media.length > 0 && {
+        distancePreference: parsedDistance,
+        ...(combinedMedia &&
+          combinedMedia.length > 0 && {
             media: {
-              create: media.map((m) => ({
+              create: combinedMedia.map((m) => ({
                 url: m.url,
               })),
             },
@@ -185,4 +217,27 @@ export class UserService {
     });
     return { message: 'User deleted successfully', user: deletedUser };
   }
+
+  async uploadUserMedia(userId: number, file: Express.Multer.File) {
+    if (!file || !file.buffer) {
+      throw new HttpException('File is required', HttpStatus.BAD_REQUEST);
+    }
+
+    const uploadResult = await this.cloudinary.uploadBuffer(
+      file.buffer,
+      file.originalname,
+      { folder: process.env.CLOUDINARY_FOLDER || 'uploads/users' },
+    );
+
+    const media = await this.prisma.media.create({
+      data: {
+        url: uploadResult.secure_url,
+        user: { connect: { id: userId } },
+      },
+    });
+
+    return { url: media.url, id: media.id };
+  }
+
+  // Removed separate register-with-media route; unified into userRegistration
 }
