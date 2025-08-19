@@ -159,8 +159,8 @@ export class UserService {
     return profile;
   }
 
-  async createUserLocation(location: UserLocation) {
-    const { profileId, city, country, latitude, longitude } = location;
+  async createUserLocation(locationDto: UserLocation) {
+    const { profileId, city, country, latitude, longitude } = locationDto;
 
     // Create the location
     const createdLocation = await this.prisma.location.create({
