@@ -123,7 +123,7 @@ export class CompleteProfileDto {
   id?: number;
 
   @IsOptional()
-  @IsString()
+  @ValidateNested()
   @Type(() => UserLocation)
   location?: UserLocation;
 
