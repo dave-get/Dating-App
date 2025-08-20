@@ -43,7 +43,13 @@ export class UserService {
         profile: {
           include: {
             location: true,
-            passion: true,
+            passion: {
+              include: {
+                creativity: true,
+                funAndFavorites: true,
+                food: true,
+              },
+            },
             lifeStyle: true,
             whatMakesYouUnique: true,
           },
