@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import googleOauthConfig from 'src/config/google.oauth.config';
 import { OAuth2Client, TokenPayload } from 'google-auth-library';
+import { PrismaService } from 'src/prisma/services/prisma/prisma.service';
 
 @Injectable()
 export class GoogleStraregy {
@@ -10,19 +11,12 @@ export class GoogleStraregy {
   constructor(
     @Inject(googleOauthConfig.KEY)
     private readonly googleConfig: ConfigType<typeof googleOauthConfig>,
+    private readonly prisma: PrismaService,
   ) {
     this.oauthClient = new OAuth2Client(this.googleConfig.clientId);
   }
 
-  async verifyIdToken(idToken: string): Promise<{
-    googleId: string;
-    email: string;
-    emailVerified: boolean | undefined;
-    firstname: string | undefined;
-    lastname: string | undefined;
-    picture: string | undefined;
-    rawPayload: TokenPayload | undefined;
-  }> {
+  async verifyIdToken(idToken: string) {
     const ticket = await this.oauthClient.verifyIdToken({
       idToken,
       audience: [
@@ -40,6 +34,17 @@ export class GoogleStraregy {
       email: payload.email,
       emailVerified: payload.email_verified,
     });
+
+    // Check for existing user by email or phone
+    const existingUser = await this.prisma.user.findFirst({
+      where: {
+        email: payload.email,
+      },
+    });
+    if (existingUser) {
+      return {verified: payload.email_verified, message: 'User already exists', user: existingUser };
+    }
+    
     return {
       googleId: payload.sub,
       email: payload.email,

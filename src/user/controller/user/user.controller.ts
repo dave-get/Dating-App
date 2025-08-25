@@ -19,6 +19,7 @@ import {
   CompleteProfileDto,
   UserLocation,
 } from 'src/user/dtos/completeProfile.dto';
+import { P } from '@upstash/redis/zmscore-BshEAkn7';
 
 @Controller('user')
 export class UserController {
@@ -76,6 +77,11 @@ export class UserController {
   @Post('location')
   createUserLocation(@Body() location: UserLocation) {
     return this.userService.createUserLocation(location);
+  }
+
+  @Put('location/update/:profileId')
+  updateUser(@Param('profileId') profileId: string, @Body() updateData: UserLocation) {
+    return this.userService.updateUserLocation(profileId, updateData);
   }
 
   @Post('upload/:userId')

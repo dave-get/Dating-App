@@ -21,14 +21,6 @@ export class OtpController {
     @Body('phoneNumber') phoneNumber: string,
     @Session() session: any,
   ) {
-    // Check if user already exists
-    const existingUser = await this.userService.findUserByPhone(phoneNumber);
-    if (existingUser) {
-      throw new HttpException(
-        'User with this phone number already exists',
-        HttpStatus.CONFLICT,
-      );
-    }
 
     const otp = this.otpService.generateOtp();
     session.phoneVerification = { otp, phoneNumber }; // store both together
@@ -42,13 +34,34 @@ export class OtpController {
     @Body('phoneNumber') phoneNumber: string,
     @Session() session: any,
   ) {
+    if (!otp || !phoneNumber) {
+      return {
+        verified: false,
+        message: 'OTP and phone number are required',
+        status: HttpStatus.BAD_REQUEST,
+      };
+    }
+
+    const userExists = await this.userService.findUserByPhone(phoneNumber);
+
+
     if (session.phoneVerification) {
-      return await this.otpService.verifyOtp(phoneNumber, otp, session);
+      const isValid = await this.otpService.verifyOtp(phoneNumber, otp, session);
+      if (isValid.verified) {
+        return {
+          verified: true,
+          phoneNumber: isValid.phoneNumber,
+          user: userExists,
+          message:
+            'OTP verified successfully. You can now proceed with registration.',
+        };
+      }
     }
     console.log(session);
-    throw new HttpException(
-      'No OTP session found. Please request an OTP first.',
-      HttpStatus.BAD_REQUEST,
-    );
+    return {
+      message: 'No OTP session found. Please request an OTP first.',
+      verified: false,
+      status: HttpStatus.BAD_REQUEST,
+    };
   }
 }

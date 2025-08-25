@@ -84,8 +84,6 @@ export class OtpService {
       return {
         verified: true,
         phoneNumber: verification.phoneNumber,
-        message:
-          'OTP verified successfully. You can now proceed with registration.',
       };
     }
     console.log(verification);

@@ -32,6 +32,20 @@ export class UserService {
       where: { phoneNumber },
       include: {
         media: true,
+        profile: {
+          include: {
+            location: true,
+            passion: {
+              include: {
+                creativity: true,
+                funAndFavorites: true,
+                food: true,
+              },
+            },
+            lifeStyle: true,
+            whatMakesYouUnique: true,
+          },
+        },
       },
     });
   }
@@ -79,22 +93,16 @@ export class UserService {
       },
     });
     if (existingUser) {
-      throw new HttpException('User already exists', HttpStatus.CONFLICT);
+      return { message: 'User already exists', user: existingUser };
     }
 
     const parsedAge = Number(age);
     if (!Number.isInteger(parsedAge)) {
-      throw new HttpException(
-        'Age must be a valid number',
-        HttpStatus.BAD_REQUEST,
-      );
+      return { message: 'Age must be a valid number', status: HttpStatus.BAD_REQUEST };
     }
     const parsedDistance = Number(distancePreference);
     if (!Number.isInteger(parsedDistance)) {
-      throw new HttpException(
-        'Distance preference must be a valid number',
-        HttpStatus.BAD_REQUEST,
-      );
+      return { message: 'Distance preference must be a valid number', status: HttpStatus.BAD_REQUEST };
     }
     // If files are provided, upload to Cloudinary and merge into media
     let combinedMedia = media ?? [];
@@ -213,6 +221,24 @@ export class UserService {
     });
 
     return createdLocation;
+  }
+
+  async updateUserLocation(profileId: string, locationDto: UserLocation) {
+    const { city, country, latitude, longitude } = locationDto;
+
+    const parsedProfileId = Number(profileId);
+    // Update the location
+    const updatedLocation = await this.prisma.location.update({
+      where: { profileId: parsedProfileId },
+      data: {
+        city,
+        country,
+        latitude,
+        longitude,
+      },
+    });
+
+    return updatedLocation;
   }
 
   async removeUser(phoneNumber: string) {
